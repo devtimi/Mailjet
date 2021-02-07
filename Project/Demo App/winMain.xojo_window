@@ -17,7 +17,7 @@ Begin Window winMain
    MaximumWidth    =   32000
    MenuBar         =   117950463
    MenuBarVisible  =   True
-   MinimumHeight   =   64
+   MinimumHeight   =   332
    MinimumWidth    =   420
    Resizeable      =   True
    Title           =   "MailJet Class"
@@ -618,7 +618,7 @@ End
 		  pwSend.Visible = true
 		  
 		  // Append message and send it
-		  oMailJet.Messages.AddRow(_oEmail)
+		  oMailJet.Messages.Add(_oEmail)
 		  oMailJet.SendMail
 		  
 		End Sub
@@ -626,7 +626,13 @@ End
 #tag EndEvents
 #tag Events oMailJet
 	#tag Event
-		Sub Error(ErrorException As RuntimeException)
+		Sub Error(ex as RuntimeException)
+		  var _md as new MessageDialog
+		  _md.Message = Introspection.GetType(ex).Name
+		  _md.Explanation = ex.Message
+		  
+		  call _md.ShowModal
+		  
 		  // Enable send button
 		  btnSend.Enabled = true
 		  pwSend.Visible = false
