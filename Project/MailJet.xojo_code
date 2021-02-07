@@ -162,7 +162,7 @@ Protected Class MailJet
 		      // Trying to turn the variant into a dictionary failed
 		      // This can happen if it's not the single json object we're expecting
 		      
-		    catch ex as JSONException
+		    catch ex as InvalidJSONException
 		      // Response wasn't json
 		      // Not much we can parse here
 		      
@@ -170,10 +170,34 @@ Protected Class MailJet
 		    
 		    RaiseEvent Error(_ex)
 		    
+		  else
+		    // Good response, pass to parser who will parse out
+		    // individual errors and then raise MailSent
+		    HandleResponse200(content.DefineEncoding(Encodings.UTF8))
+		    
 		  end
 		  
 		  mbBusy = false
 		  moSock = nil
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub HandleResponse200(_sBody as String)
+		  var _vBody as Variant
+		  
+		  try
+		    _vBody = ParseJSON(_sBody)
+		    
+		  catch ex as InvalidJSONException
+		    // Response wasn't json
+		    // Not much we can parse here
+		    RaiseEvent Error(ex)
+		    return
+		    
+		  end try
+		  
+		  break
 		End Sub
 	#tag EndMethod
 
@@ -213,6 +237,8 @@ Protected Class MailJet
 		  var _dictRequest as new Dictionary
 		  
 		  #if DebugBuild then
+		    // This SandboxMode flag prevents emails from actually sending
+		    // Take this out if you're testing actual delivery
 		    _dictRequest.Value("SandboxMode") = true
 		    
 		  #endif
@@ -228,10 +254,13 @@ Protected Class MailJet
 		  
 		  _dictRequest.Value("Messages") = _aroMessages()
 		  
-		  var _sBody as String = GenerateJSON(_dictRequest, true)
+		  var _sBody as String = GenerateJSON(_dictRequest)
 		  
 		  mbBusy = true
 		  moSock = NewSocket
+		  
+		  
+		  moSock.SetRequestContent(_sBody, "application/json")
 		  
 		  moSock.Send("POST", "https://api.mailjet.com/v3.1/send")
 		End Sub
