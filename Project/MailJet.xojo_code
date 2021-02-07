@@ -141,6 +141,17 @@ Protected Class MailJet
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Sub HandleResponse(_oSender As URLConnection, URL As String, HTTPStatus As Integer, content As String)
+		  #pragma unused _oSender
+		  
+		  break
+		  
+		  mbBusy = false
+		  moSock = nil
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Function NewSocket() As URLConnection
 		  // Create URLConnection and add the authentication header
 		  var _sAuth as String = EncodeBase64(kAPIKey + ":" + kAPISecret, 0)
@@ -150,7 +161,7 @@ Protected Class MailJet
 		  
 		  // Handle server responses that aren't 200
 		  AddHandler _oSock.Error, WeakAddressOf HandleError
-		  // AddHandler toSock.ServerResponse, WeakAddressOf HandleServerResponse
+		  AddHandler _oSock.ContentReceived, WeakAddressOf HandleResponse
 		  
 		  return _oSock
 		End Function
@@ -195,6 +206,8 @@ Protected Class MailJet
 		  
 		  mbBusy = true
 		  moSock = NewSocket
+		  
+		  moSock.Send("POST", "https://api.mailjet.com/v3.1/send")
 		End Sub
 	#tag EndMethod
 
