@@ -184,10 +184,27 @@ Protected Class MailJet
 
 	#tag Method, Flags = &h21
 		Private Sub HandleResponse200(_sBody as String)
-		  var _vBody as Variant
+		  var _dictResponse, _ardictMessagesResponse() as Dictionary
 		  
 		  try
-		    _vBody = ParseJSON(_sBody)
+		    // Convert json body to Xojo object
+		    var _vBody as Variant = ParseJSON(_sBody)
+		    _dictResponse = Dictionary(_vBody)
+		    
+		    if _dictResponse.HasKey("Messages") then
+		      var _arvMessages() as Variant = _dictResponse.Value("Messages")
+		      for each _vMessage as Variant in _arvMessages
+		        _ardictMessagesResponse.Add(Dictionary(_vMessage))
+		        
+		      next _vMessage
+		      
+		    end
+		    
+		  catch ex as IllegalCastException
+		    // Trying to turn the variant into a dictionary failed
+		    // This can happen if it's not the single json object we're expecting
+		    RaiseEvent Error(ex)
+		    return
 		    
 		  catch ex as InvalidJSONException
 		    // Response wasn't json
@@ -197,7 +214,34 @@ Protected Class MailJet
 		    
 		  end try
 		  
-		  break
+		  // Store a flag for if the response is all failures
+		  // That shouldn't raise a MailSent event because no mail was ever sent
+		  var _bAllFailures as Boolean = True
+		  
+		  for each _dictMessageResult as Dictionary in _ardictMessagesResponse
+		    var _sStatus as String =_dictMessageResult.Lookup("Status", "unknown")
+		    
+		    select case _sStatus
+		    case "success"
+		      _bAllFailures = false
+		      
+		    case else
+		      var _ex as new MailJetException
+		      _ex.Message = "A message failed to send: " + GenerateJSON(_dictMessageResult)
+		      Error(_ex)
+		      
+		    end
+		    
+		  next _dictMessageResult
+		  
+		  // Raise Sent event if something sent!
+		  if not _bAllFailures then
+		    RaiseEvent MailSent
+		    
+		  end
+		  
+		  // Cleanup
+		  RemoveAllMessages
 		End Sub
 	#tag EndMethod
 

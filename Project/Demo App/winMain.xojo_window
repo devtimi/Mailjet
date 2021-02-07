@@ -640,6 +640,8 @@ End
 	#tag EndEvent
 	#tag Event
 		Sub MailSent()
+		  MessageBox("Mail Sent!")
+		  
 		  // Enable send button
 		  btnSend.Enabled = true
 		  pwSend.Visible = false
