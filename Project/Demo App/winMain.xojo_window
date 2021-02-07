@@ -22,7 +22,7 @@ Begin Window winMain
    Resizeable      =   True
    Title           =   "MailJet Class"
    Type            =   0
-   Visible         =   False
+   Visible         =   True
    Width           =   420
    Begin Label lblFromName
       AllowAutoDeactivate=   True

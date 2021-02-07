@@ -4,14 +4,45 @@ Protected Class MailJet
 		Private Function ConvertEmailToMailJet(_oMail as EmailMessage) As Dictionary
 		  var _dictBody as new Dictionary
 		  
+		  // Set up From object
+		  var _dictFrom as Dictionary = GetFromObject(_oMail)
 		  
+		  break
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function GetFromObject(_oMail as EmailMessage) As Dictionary
+		  // Set up From object
+		  var _dictFrom as new Dictionary
+		  
+		  var _rx as new RegEx
+		  _rx.SearchPattern = kRxEmail
+		  
+		  var _rxm as RegExMatch = _rx.Search(_oMail.FromAddress)
+		  if _rxm <> nil then
+		    _dictFrom.Value("Email") = _rxm.SubExpressionString(1)
+		    
+		  end
+		  
+		  // Now check for name
+		  _rx = new RegEx
+		  _rx.SearchPattern = kRxEmailName
+		  _rxm = _rx.Search(_oMail.FromAddress)
+		  
+		  if _rxm <> nil then
+		    _dictFrom.Value("Name") = _rxm.SubExpressionString(1)
+		    
+		  end
+		  
+		  return _dictFrom
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Sub HandleError(_oSender as URLConnection, ex as RuntimeException)
 		  // Raise Error event.
-		  Error(ErrorException)
+		  Error(ex)
 		  
 		  mbBusy = false
 		  moSock = nil
@@ -99,6 +130,12 @@ Protected Class MailJet
 	#tag EndConstant
 
 	#tag Constant, Name = kMaxSockets, Type = Double, Dynamic = False, Default = \"5", Scope = Private
+	#tag EndConstant
+
+	#tag Constant, Name = kRxEmail, Type = String, Dynamic = False, Default = \"<\?([^@\\s]+@[^@\\s\\.]+\\.[^@\\.\\s>]+)>\?", Scope = Private
+	#tag EndConstant
+
+	#tag Constant, Name = kRxEmailName, Type = String, Dynamic = False, Default = \"(.*)\\s\\<.*\\>", Scope = Private
 	#tag EndConstant
 
 	#tag Constant, Name = kVersion, Type = Double, Dynamic = False, Default = \"1.0", Scope = Protected
