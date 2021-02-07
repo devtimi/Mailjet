@@ -2,9 +2,7 @@
 Protected Class MailJet
 	#tag Method, Flags = &h21
 		Private Function ConvertEmailToMailJet(_oMail as EmailMessage) As Dictionary
-		  var _dictBody as new Dictionary
-		  
-		  // Set up From object
+		  // Validate From
 		  if _oMail.FromAddress.Trim = "" then
 		    var _ex as new InvalidArgumentException
 		    _ex.Message = "EmailMessage has no FromAddress"
@@ -13,7 +11,7 @@ Protected Class MailJet
 		    
 		  end
 		  
-		  // Set up To array
+		  // Validate To
 		  if _oMail.ToAddress.Trim = "" then
 		    var _ex as new InvalidArgumentException
 		    _ex.Message = "EmailMessage has no Recepients"
@@ -23,13 +21,45 @@ Protected Class MailJet
 		  end
 		  
 		  var _ardictFrom() as Dictionary = GetAddressArray(_oMail.FromAddress)
-		  var _dictFrom as Dictionary = _ardictFrom(0)
 		  
 		  var _ardictTo() as Dictionary = GetAddressArray(_oMail.ToAddress)
 		  var _ardictCC() as Dictionary = GetAddressArray(_oMail.CCAddress)
 		  var _ardictBCC() as Dictionary = GetAddressArray(_oMail.BCCAddress)
 		  
-		  break
+		  // Start building JSON item
+		  var _dictBody as new Dictionary
+		  _dictBody.Value("From") = _ardictFrom(0)
+		  _dictBody.Value("To") = _ardictTo
+		  
+		  if _ardictCC.LastIndex > -1 then
+		    _dictBody.Value("CC") = _ardictCC
+		    
+		  end
+		  
+		  if _ardictBCC.LastIndex > -1 then
+		    _dictBody.Value("BCC") = _ardictBCC
+		    
+		  end
+		  
+		  _dictBody.Value("Subject") = _oMail.Subject
+		  
+		  if _oMail.BodyPlainText <> "" then
+		    _dictBody.Value("TextPart") = _oMail.BodyPlainText
+		    
+		  end
+		  
+		  if _oMail.BodyHTML <> "" then
+		    _dictBody.Value("HTMLPart") = _oMail.BodyHTML
+		    
+		  end
+		  
+		  // Attachments are not handled at this time
+		  if _oMail.Attachments.LastIndex > -1 then
+		    break
+		    
+		  end
+		  
+		  return _dictBody
 		End Function
 	#tag EndMethod
 
@@ -160,6 +190,11 @@ Protected Class MailJet
 		  next _oEmail
 		  
 		  _dictRequest.Value("Messages") = _aroMessages()
+		  
+		  var _sBody as String = GenerateJSON(_dictRequest, true)
+		  
+		  mbBusy = true
+		  moSock = NewSocket
 		End Sub
 	#tag EndMethod
 
