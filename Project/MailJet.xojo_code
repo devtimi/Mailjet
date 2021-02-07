@@ -4,7 +4,7 @@ Protected Class MailJet
 		Private Function ConvertEmailToMailJet(_oMail as EmailMessage) As Dictionary
 		  // Validate From
 		  if _oMail.FromAddress.Trim = "" then
-		    var _ex as new InvalidArgumentException
+		    var _ex as new MailJetException
 		    _ex.Message = "EmailMessage has no FromAddress"
 		    RaiseEvent Error(_ex)
 		    return nil
@@ -13,7 +13,7 @@ Protected Class MailJet
 		  
 		  // Validate To
 		  if _oMail.ToAddress.Trim = "" then
-		    var _ex as new InvalidArgumentException
+		    var _ex as new MailJetException
 		    _ex.Message = "EmailMessage has no Recepients"
 		    RaiseEvent Error(_ex)
 		    return nil
@@ -144,7 +144,33 @@ Protected Class MailJet
 		Private Sub HandleResponse(_oSender As URLConnection, URL As String, HTTPStatus As Integer, content As String)
 		  #pragma unused _oSender
 		  
-		  break
+		  if HTTPStatus <> 200 then
+		    var _ex as new MailJetException
+		    _ex.Message = "HTTP response code was not okay: " + HTTPStatus.ToString
+		    
+		    try
+		      // Attempt to parse out the error messager
+		      var _vResponse as Variant = ParseJSON(content.DefineEncoding(Encodings.UTF8))
+		      var _dictResponse as Dictionary = Dictionary(_vResponse)
+		      
+		      if _dictResponse.HasKey("ErrorMessage") then
+		        _ex.Message = _dictResponse.Value("ErrorMessage")
+		        
+		      end
+		      
+		    catch ex as IllegalCastException
+		      // Trying to turn the variant into a dictionary failed
+		      // This can happen if it's not the single json object we're expecting
+		      
+		    catch ex as JSONException
+		      // Response wasn't json
+		      // Not much we can parse here
+		      
+		    end try
+		    
+		    RaiseEvent Error(_ex)
+		    
+		  end
 		  
 		  mbBusy = false
 		  moSock = nil
@@ -177,7 +203,7 @@ Protected Class MailJet
 		Sub SendMail()
 		  // Validate
 		  if mbBusy then
-		    var _ex as new UnsupportedOperationException
+		    var _ex as new MailJetException
 		    _ex.Message = "This MailJet socket is already in use, please wait for the MailSent event."
 		    RaiseEvent Error(_ex)
 		    return

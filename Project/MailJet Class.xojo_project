@@ -3,6 +3,7 @@ RBProjectVersion=2020.021
 MinIDEVersion=20070100
 OrigIDEVersion=20200201
 Class=MailJet;MailJet.xojo_code;&h0000000011BBD7FF;&h0000000000000000;false
+Class=MailJetException;MailJetException.xojo_code;&h00000000424AE7FF;&h0000000000000000;false
 BuildSteps=Build Automation;Build Automation.xojo_code;&h000000001723BFFF;&h0000000000000000;false
 Folder=Demo App;Demo App;&h000000001CD58FFF;&h0000000000000000;false
 Class=App;Demo App/App.xojo_code;&h00000000550697FF;&h000000001CD58FFF;false
