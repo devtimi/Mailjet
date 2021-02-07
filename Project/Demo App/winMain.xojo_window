@@ -20,7 +20,7 @@ Begin Window winMain
    MinimumHeight   =   332
    MinimumWidth    =   420
    Resizeable      =   True
-   Title           =   "MailJet Class"
+   Title           =   "Mailjet Class"
    Type            =   0
    Visible         =   True
    Width           =   420
@@ -438,7 +438,7 @@ Begin Window winMain
       TabIndex        =   9
       TabPanelIndex   =   0
       TabStop         =   True
-      Text            =   "MailJet Test Email"
+      Text            =   "Mailjet Test Email"
       TextAlignment   =   0
       TextColor       =   &c00000000
       Tooltip         =   ""
@@ -486,7 +486,7 @@ Begin Window winMain
       TabIndex        =   11
       TabPanelIndex   =   0
       TabStop         =   True
-      Text            =   "This is a test email using the MailJet class in Xojo!"
+      Text            =   "This is a test email using the Mailjet class in Xojo!"
       TextAlignment   =   0
       TextColor       =   &c00000000
       Tooltip         =   ""
@@ -530,7 +530,7 @@ Begin Window winMain
       Visible         =   True
       Width           =   80
    End
-   Begin MailJet oMailJet
+   Begin Mailjet oMailjet
       Index           =   -2147483648
       LockedInPosition=   False
       Scope           =   2
@@ -618,13 +618,13 @@ End
 		  pwSend.Visible = true
 		  
 		  // Append message and send it
-		  oMailJet.Messages.Add(_oEmail)
-		  oMailJet.SendMail
+		  oMailjet.Messages.Add(_oEmail)
+		  oMailjet.SendMail
 		  
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events oMailJet
+#tag Events oMailjet
 	#tag Event
 		Sub Error(ex as RuntimeException)
 		  var _md as new MessageDialog

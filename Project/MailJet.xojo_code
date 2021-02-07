@@ -1,10 +1,10 @@
 #tag Class
-Protected Class MailJet
+Protected Class Mailjet
 	#tag Method, Flags = &h21
-		Private Function ConvertEmailToMailJet(_oMail as EmailMessage) As Dictionary
+		Private Function ConvertEmailToMailjet(_oMail as EmailMessage) As Dictionary
 		  // Validate From
 		  if _oMail.FromAddress.Trim = "" then
-		    var _ex as new MailJetException
+		    var _ex as new MailjetException
 		    _ex.Message = "EmailMessage has no FromAddress"
 		    RaiseEvent Error(_ex)
 		    return nil
@@ -13,7 +13,7 @@ Protected Class MailJet
 		  
 		  // Validate To
 		  if _oMail.ToAddress.Trim = "" then
-		    var _ex as new MailJetException
+		    var _ex as new MailjetException
 		    _ex.Message = "EmailMessage has no Recepients"
 		    RaiseEvent Error(_ex)
 		    return nil
@@ -145,7 +145,7 @@ Protected Class MailJet
 		  #pragma unused _oSender
 		  
 		  if HTTPStatus <> 200 then
-		    var _ex as new MailJetException
+		    var _ex as new MailjetException
 		    _ex.Message = "HTTP response code was not okay: " + HTTPStatus.ToString
 		    
 		    try
@@ -226,7 +226,7 @@ Protected Class MailJet
 		      _bAllFailures = false
 		      
 		    case else
-		      var _ex as new MailJetException
+		      var _ex as new MailjetException
 		      _ex.Message = "A message failed to send: " + GenerateJSON(_dictMessageResult)
 		      Error(_ex)
 		      
@@ -271,8 +271,8 @@ Protected Class MailJet
 		Sub SendMail()
 		  // Validate
 		  if mbBusy then
-		    var _ex as new MailJetException
-		    _ex.Message = "This MailJet socket is already in use, please wait for the MailSent event."
+		    var _ex as new MailjetException
+		    _ex.Message = "This Mailjet socket is already in use, please wait for the MailSent event."
 		    RaiseEvent Error(_ex)
 		    return
 		    
@@ -291,7 +291,7 @@ Protected Class MailJet
 		  
 		  // Put all messages into request
 		  for each _oEmail as EmailMessage in Messages
-		    var _dictMail as Dictionary = ConvertEmailToMailJet(_oEmail)
+		    var _dictMail as Dictionary = ConvertEmailToMailjet(_oEmail)
 		    _aroMessages.Add(_dictMail)
 		    
 		  next _oEmail

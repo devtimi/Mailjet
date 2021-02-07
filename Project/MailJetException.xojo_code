@@ -1,12 +1,12 @@
 #tag Class
-Protected Class MailJetException
+Protected Class MailjetException
 Inherits RuntimeException
 	#tag Note, Name = What's This?
 		
 		// This is a subclass of RuntimeException
-		// that the MailJet class will always use when there is an error it has handled
+		// that the Mailjet class will always use when there is an error it has handled
 		
-		// This allows for you to properly catch MailJet exceptions
+		// This allows for you to properly catch Mailjet exceptions
 	#tag EndNote
 
 
