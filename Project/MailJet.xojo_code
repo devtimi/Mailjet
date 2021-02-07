@@ -12,6 +12,43 @@ Protected Class MailJet
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
+		Private Function GetAddressArray(_sRecipientsCSV as String) As Dictionary()
+		  var _ardictTo() as Dictionary
+		  
+		  var _arsAddressed() as String = _sRecipientsCSV.Split(",")
+		  
+		  for each _sAddress as String in _arsAddressed
+		    var _dictTo as new Dictionary
+		    
+		    var _rx as new RegEx
+		    _rx.SearchPattern = kRxEmail
+		    
+		    var _rxm as RegExMatch = _rx.Search(_sAddress)
+		    if _rxm <> nil then
+		      _dictTo.Value("Email") = _rxm.SubExpressionString(1)
+		      
+		    end
+		    
+		    // Now check for name
+		    _rx = new RegEx
+		    _rx.SearchPattern = kRxEmailName
+		    _rxm = _rx.Search(_sAddress)
+		    
+		    if _rxm <> nil then
+		      _dictTo.Value("Name") = _rxm.SubExpressionString(1)
+		      
+		    end
+		    
+		    // Add it to the array
+		    _ardictTo.Add(_dictTo)
+		    
+		  next _sAddress
+		  
+		  return _ardictTo
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Function GetFromObject(_oMail as EmailMessage) As Dictionary
 		  // Set up From object
 		  var _dictFrom as new Dictionary
