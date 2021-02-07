@@ -81,7 +81,7 @@ Begin Window winMain
       Multiline       =   False
       Scope           =   2
       Selectable      =   False
-      TabIndex        =   1
+      TabIndex        =   2
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "From Email:"
@@ -116,7 +116,7 @@ Begin Window winMain
       Multiline       =   False
       Scope           =   2
       Selectable      =   False
-      TabIndex        =   2
+      TabIndex        =   4
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "To Name:"
@@ -151,7 +151,7 @@ Begin Window winMain
       Multiline       =   False
       Scope           =   2
       Selectable      =   False
-      TabIndex        =   3
+      TabIndex        =   6
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "To Email:"
@@ -186,7 +186,7 @@ Begin Window winMain
       Multiline       =   False
       Scope           =   2
       Selectable      =   False
-      TabIndex        =   4
+      TabIndex        =   8
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "Subject:"
@@ -221,7 +221,7 @@ Begin Window winMain
       Multiline       =   False
       Scope           =   2
       Selectable      =   False
-      TabIndex        =   5
+      TabIndex        =   10
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "Body:"
@@ -263,7 +263,7 @@ Begin Window winMain
       Password        =   False
       ReadOnly        =   False
       Scope           =   2
-      TabIndex        =   6
+      TabIndex        =   1
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   ""
@@ -306,7 +306,7 @@ Begin Window winMain
       Password        =   False
       ReadOnly        =   False
       Scope           =   2
-      TabIndex        =   7
+      TabIndex        =   3
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   ""
@@ -349,7 +349,7 @@ Begin Window winMain
       Password        =   False
       ReadOnly        =   False
       Scope           =   2
-      TabIndex        =   8
+      TabIndex        =   5
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   ""
@@ -392,7 +392,7 @@ Begin Window winMain
       Password        =   False
       ReadOnly        =   False
       Scope           =   2
-      TabIndex        =   9
+      TabIndex        =   7
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   ""
@@ -406,7 +406,7 @@ Begin Window winMain
       Visible         =   True
       Width           =   268
    End
-   Begin TextField TextField5
+   Begin TextField txtSubject
       AllowAutoDeactivate=   True
       AllowFocusRing  =   True
       AllowSpellChecking=   False
@@ -435,7 +435,7 @@ Begin Window winMain
       Password        =   False
       ReadOnly        =   False
       Scope           =   2
-      TabIndex        =   10
+      TabIndex        =   9
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "MailJet Test Email"
@@ -453,7 +453,7 @@ Begin Window winMain
       AllowAutoDeactivate=   True
       AllowFocusRing  =   True
       AllowSpellChecking=   True
-      AllowStyledText =   True
+      AllowStyledText =   False
       AllowTabs       =   False
       BackgroundColor =   &cFFFFFF00
       Bold            =   False
@@ -530,6 +530,34 @@ Begin Window winMain
       Visible         =   True
       Width           =   80
    End
+   Begin MailJet oMailJet
+      Index           =   -2147483648
+      LockedInPosition=   False
+      Scope           =   2
+      TabPanelIndex   =   0
+   End
+   Begin ProgressWheel pwSend
+      AllowAutoDeactivate=   True
+      Enabled         =   True
+      Height          =   16
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Left            =   292
+      LockBottom      =   True
+      LockedInPosition=   False
+      LockLeft        =   False
+      LockRight       =   True
+      LockTop         =   False
+      Scope           =   2
+      TabIndex        =   14
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Tooltip         =   ""
+      Top             =   295
+      Transparent     =   False
+      Visible         =   True
+      Width           =   16
+   End
 End
 #tag EndWindow
 
@@ -539,6 +567,7 @@ End
 #tag Events btnSend
 	#tag Event
 		Sub Action()
+		  // Validate
 		  if txtFromEmail.Text.Trim = "" then
 		    MessageBox("From email is required")
 		    return
@@ -550,6 +579,71 @@ End
 		    return
 		    
 		  end
+		  
+		  // Construct addresses
+		  var _sEmailFrom, _sEmailTo as String
+		  
+		  if txtFromName.Text.Trim <> "" then
+		    // There's no separate name and email field in EmailMessage
+		    // so we'll stash the name through the normal email convention of
+		    // Person Name <address@domain.com>
+		    _sEmailFrom = txtFromName.Text.Trim + " <" + txtFromEmail.Text.Trim + ">"
+		    
+		  else
+		    // No From name
+		    _sEmailFrom = txtFromEmail.Text.Trim
+		    
+		  end
+		  
+		  if txtToName.Text.Trim <> "" then
+		    // Add To name
+		    _sEmailTo = txtToName.Text.Trim + " <" + txtToEmail.Text.Trim + ">"
+		    
+		  else
+		    // No To name
+		    _sEmailTo = txtToEmail.Text.Trim
+		    
+		  end
+		  
+		  // Create EmailMessage Object
+		  var _oEmail as new EmailMessage
+		  _oEmail.FromAddress = _sEmailFrom
+		  _oEmail.Subject = txtSubject.Text.Trim
+		  _oEmail.BodyPlainText = txtBody.Text.Trim
+		  
+		  _oEmail.AddRecipient(_sEmailTo)
+		  
+		  // Disable button
+		  me.Enabled = false
+		  pwSend.Visible = true
+		  
+		  // Append message and send it
+		  oMailJet.Messages.AddRow(_oEmail)
+		  oMailJet.SendMail
+		  
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events oMailJet
+	#tag Event
+		Sub Error(ErrorException As RuntimeException)
+		  // Enable send button
+		  btnSend.Enabled = true
+		  pwSend.Visible = false
+		End Sub
+	#tag EndEvent
+	#tag Event
+		Sub MailSent()
+		  // Enable send button
+		  btnSend.Enabled = true
+		  pwSend.Visible = false
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events pwSend
+	#tag Event
+		Sub Open()
+		  me.Visible = false
 		End Sub
 	#tag EndEvent
 #tag EndEvents

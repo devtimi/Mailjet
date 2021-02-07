@@ -1,17 +1,21 @@
 #tag Class
 Protected Class MailJet
-	#tag Method, Flags = &h0
-		Sub Constructor()
-		  
-		End Sub
-	#tag EndMethod
-
 	#tag Method, Flags = &h21
 		Private Function ConvertEmailToMailJet(_oMail as EmailMessage) As Dictionary
 		  var _dictBody as new Dictionary
 		  
 		  
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub HandleError(_oSender as URLConnection, ex as RuntimeException)
+		  // Raise Error event.
+		  Error(ErrorException)
+		  
+		  mbBusy = false
+		  moSock = nil
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
@@ -22,11 +26,8 @@ Protected Class MailJet
 		  var _oSock as new URLConnection
 		  _oSock.RequestHeader("Authorization") = "Basic " + _sAuth
 		  
-		  // Retain the request
-		  // maroRequests.Add(toSock)
-		  
 		  // Handle server responses that aren't 200
-		  // AddHandler toSock.Error, WeakAddressOf HandleError
+		  AddHandler _oSock.Error, WeakAddressOf HandleError
 		  // AddHandler toSock.ServerResponse, WeakAddressOf HandleServerResponse
 		  
 		  return _oSock
@@ -41,6 +42,13 @@ Protected Class MailJet
 
 	#tag Method, Flags = &h0
 		Sub SendMail()
+		  if mbBusy then
+		    var _ex as new UnsupportedOperationException
+		    _ex.Message = "This MailJet socket is already in use, please wait for the MailSent event."
+		    raise _ex
+		    
+		  end
+		  
 		  var _dictRequest as new Dictionary
 		  
 		  #if DebugBuild then
@@ -63,12 +71,24 @@ Protected Class MailJet
 
 
 	#tag Hook, Flags = &h0
+		Event Error(ErrorException As RuntimeException)
+	#tag EndHook
+
+	#tag Hook, Flags = &h0
 		Event MailSent()
 	#tag EndHook
 
 
+	#tag Property, Flags = &h21
+		Private mbBusy As Boolean
+	#tag EndProperty
+
 	#tag Property, Flags = &h0
 		Messages() As EmailMessage
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private moSock As URLConnection
 	#tag EndProperty
 
 
