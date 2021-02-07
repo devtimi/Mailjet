@@ -5,7 +5,29 @@ Protected Class MailJet
 		  var _dictBody as new Dictionary
 		  
 		  // Set up From object
-		  var _dictFrom as Dictionary = GetFromObject(_oMail)
+		  if _oMail.FromAddress.Trim = "" then
+		    var _ex as new InvalidArgumentException
+		    _ex.Message = "EmailMessage has no FromAddress"
+		    RaiseEvent Error(_ex)
+		    return nil
+		    
+		  end
+		  
+		  // Set up To array
+		  if _oMail.ToAddress.Trim = "" then
+		    var _ex as new InvalidArgumentException
+		    _ex.Message = "EmailMessage has no Recepients"
+		    RaiseEvent Error(_ex)
+		    return nil
+		    
+		  end
+		  
+		  var _ardictFrom() as Dictionary = GetAddressArray(_oMail.FromAddress)
+		  var _dictFrom as Dictionary = _ardictFrom(0)
+		  
+		  var _ardictTo() as Dictionary = GetAddressArray(_oMail.ToAddress)
+		  var _ardictCC() as Dictionary = GetAddressArray(_oMail.CCAddress)
+		  var _ardictBCC() as Dictionary = GetAddressArray(_oMail.BCCAddress)
 		  
 		  break
 		End Function
@@ -78,6 +100,8 @@ Protected Class MailJet
 
 	#tag Method, Flags = &h21
 		Private Sub HandleError(_oSender as URLConnection, ex as RuntimeException)
+		  #pragma unused _oSender
+		  
 		  // Raise Error event.
 		  Error(ex)
 		  
@@ -110,10 +134,12 @@ Protected Class MailJet
 
 	#tag Method, Flags = &h0
 		Sub SendMail()
+		  // Validate
 		  if mbBusy then
 		    var _ex as new UnsupportedOperationException
 		    _ex.Message = "This MailJet socket is already in use, please wait for the MailSent event."
-		    raise _ex
+		    RaiseEvent Error(_ex)
+		    return
 		    
 		  end
 		  
@@ -139,7 +165,7 @@ Protected Class MailJet
 
 
 	#tag Hook, Flags = &h0
-		Event Error(ErrorException As RuntimeException)
+		Event Error(ex as RuntimeException)
 	#tag EndHook
 
 	#tag Hook, Flags = &h0
