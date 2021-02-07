@@ -303,7 +303,6 @@ Protected Class MailJet
 		  mbBusy = true
 		  moSock = NewSocket
 		  
-		  
 		  moSock.SetRequestContent(_sBody, "application/json")
 		  
 		  moSock.Send("POST", "https://api.mailjet.com/v3.1/send")
@@ -345,7 +344,7 @@ Protected Class MailJet
 	#tag Constant, Name = kRxEmail, Type = String, Dynamic = False, Default = \"<\?([^@\\s]+@[^@\\s\\.]+\\.[^@\\.\\s>]+)>\?", Scope = Private
 	#tag EndConstant
 
-	#tag Constant, Name = kRxEmailName, Type = String, Dynamic = False, Default = \"(.*)\\s\\<.*\\>", Scope = Private
+	#tag Constant, Name = kRxEmailName, Type = String, Dynamic = False, Default = \"\\b([^\\\"]*)\\\"\?\\s\\<.*\\>", Scope = Private
 	#tag EndConstant
 
 	#tag Constant, Name = kVersion, Type = Double, Dynamic = False, Default = \"1.0", Scope = Protected
