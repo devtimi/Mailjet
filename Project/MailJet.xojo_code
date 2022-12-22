@@ -1,136 +1,137 @@
 #tag Class
 Protected Class Mailjet
 	#tag Method, Flags = &h21
-		Private Function ConvertEmailToMailjet(_oMail as EmailMessage) As Dictionary
+	#tag Method, Flags = &h21
+		Private Function ConvertEmailToMailjet(oMail as EmailMessage) As Dictionary
 		  // Validate From
-		  if _oMail.FromAddress.Trim = "" then
-		    var _ex as new MailjetException
-		    _ex.Message = "EmailMessage has no FromAddress"
-		    RaiseEvent Error(_ex)
+		  if oMail.FromAddress.Trim = "" then
+		    var ex as new MailjetException
+		    ex.Message = "EmailMessage has no FromAddress"
+		    RaiseEvent Error(ex)
 		    return nil
 		    
 		  end
 		  
 		  // Validate To
-		  if _oMail.ToAddress.Trim = "" then
-		    var _ex as new MailjetException
-		    _ex.Message = "EmailMessage has no Recepients"
-		    RaiseEvent Error(_ex)
+		  if oMail.ToAddress.Trim = "" then
+		    var ex as new MailjetException
+		    ex.Message = "EmailMessage has no Recepients"
+		    RaiseEvent Error(ex)
 		    return nil
 		    
 		  end
 		  
-		  var _ardictFrom() as Dictionary = GetAddressArray(_oMail.FromAddress)
+		  var ardictFrom() as Dictionary = GetAddressArray(oMail.FromAddress)
 		  
-		  var _ardictTo() as Dictionary = GetAddressArray(_oMail.ToAddress)
-		  var _ardictCC() as Dictionary = GetAddressArray(_oMail.CCAddress)
-		  var _ardictBCC() as Dictionary = GetAddressArray(_oMail.BCCAddress)
+		  var ardictTo() as Dictionary = GetAddressArray(oMail.ToAddress)
+		  var ardictCC() as Dictionary = GetAddressArray(oMail.CCAddress)
+		  var ardictBCC() as Dictionary = GetAddressArray(oMail.BCCAddress)
 		  
 		  // Start building JSON item
-		  var _dictBody as new Dictionary
-		  _dictBody.Value("From") = _ardictFrom(0)
-		  _dictBody.Value("To") = _ardictTo
+		  var dictBody as new Dictionary
+		  dictBody.Value("From") = ardictFrom(0)
+		  dictBody.Value("To") = ardictTo
 		  
-		  if _ardictCC.LastIndex > -1 then
-		    _dictBody.Value("CC") = _ardictCC
+		  if ardictCC.LastIndex > -1 then
+		    dictBody.Value("CC") = ardictCC
 		    
 		  end
 		  
-		  if _ardictBCC.LastIndex > -1 then
-		    _dictBody.Value("BCC") = _ardictBCC
+		  if ardictBCC.LastIndex > -1 then
+		    dictBody.Value("BCC") = ardictBCC
 		    
 		  end
 		  
-		  _dictBody.Value("Subject") = _oMail.Subject
+		  dictBody.Value("Subject") = oMail.Subject
 		  
-		  if _oMail.BodyPlainText <> "" then
-		    _dictBody.Value("TextPart") = _oMail.BodyPlainText
+		  if oMail.BodyPlainText <> "" then
+		    dictBody.Value("TextPart") = oMail.BodyPlainText
 		    
 		  end
 		  
-		  if _oMail.BodyHTML <> "" then
-		    _dictBody.Value("HTMLPart") = _oMail.BodyHTML
+		  if oMail.BodyHTML <> "" then
+		    dictBody.Value("HTMLPart") = oMail.BodyHTML
 		    
 		  end
 		  
 		  // Attachments are not handled at this time
-		  if _oMail.Attachments.LastIndex > -1 then
-		    break
+		  if oMail.Attachments.LastIndex > -1 then
+		    ConvertAttachments(oMail)
 		    
 		  end
 		  
-		  return _dictBody
+		  return dictBody
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function GetAddressArray(_sRecipientsCSV as String) As Dictionary()
-		  var _ardictTo() as Dictionary
+		Private Function GetAddressArray(sRecipientsCSV as String) As Dictionary()
+		  var ardictTo() as Dictionary
 		  
-		  var _arsAddressed() as String = _sRecipientsCSV.Split(",")
+		  var arsAddressed() as String = sRecipientsCSV.Split(",")
 		  
-		  for each _sAddress as String in _arsAddressed
-		    var _dictTo as new Dictionary
+		  for each sAddress as String in arsAddressed
+		    var dictTo as new Dictionary
 		    
-		    var _rx as new RegEx
-		    _rx.SearchPattern = kRxEmail
+		    var rx as new RegEx
+		    rx.SearchPattern = kRxEmail
 		    
-		    var _rxm as RegExMatch = _rx.Search(_sAddress)
-		    if _rxm <> nil then
-		      _dictTo.Value("Email") = _rxm.SubExpressionString(1)
+		    var rxm as RegExMatch = rx.Search(sAddress)
+		    if rxm <> nil then
+		      dictTo.Value("Email") = rxm.SubExpressionString(1)
 		      
 		    end
 		    
 		    // Now check for name
-		    _rx = new RegEx
-		    _rx.SearchPattern = kRxEmailName
-		    _rxm = _rx.Search(_sAddress)
+		    rx = new RegEx
+		    rx.SearchPattern = kRxEmailName
+		    rxm = rx.Search(sAddress)
 		    
-		    if _rxm <> nil then
-		      _dictTo.Value("Name") = _rxm.SubExpressionString(1)
+		    if rxm <> nil then
+		      dictTo.Value("Name") = rxm.SubExpressionString(1)
 		      
 		    end
 		    
 		    // Add it to the array
-		    _ardictTo.Add(_dictTo)
+		    ardictTo.Add(dictTo)
 		    
-		  next _sAddress
+		  next sAddress
 		  
-		  return _ardictTo
+		  return ardictTo
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function GetFromObject(_oMail as EmailMessage) As Dictionary
+		Private Function GetFromObject(oMail as EmailMessage) As Dictionary
 		  // Set up From object
-		  var _dictFrom as new Dictionary
+		  var dictFrom as new Dictionary
 		  
-		  var _rx as new RegEx
-		  _rx.SearchPattern = kRxEmail
+		  var rx as new RegEx
+		  rx.SearchPattern = kRxEmail
 		  
-		  var _rxm as RegExMatch = _rx.Search(_oMail.FromAddress)
-		  if _rxm <> nil then
-		    _dictFrom.Value("Email") = _rxm.SubExpressionString(1)
+		  var rxm as RegExMatch = rx.Search(oMail.FromAddress)
+		  if rxm <> nil then
+		    dictFrom.Value("Email") = rxm.SubExpressionString(1)
 		    
 		  end
 		  
 		  // Now check for name
-		  _rx = new RegEx
-		  _rx.SearchPattern = kRxEmailName
-		  _rxm = _rx.Search(_oMail.FromAddress)
+		  rx = new RegEx
+		  rx.SearchPattern = kRxEmailName
+		  rxm = rx.Search(oMail.FromAddress)
 		  
-		  if _rxm <> nil then
-		    _dictFrom.Value("Name") = _rxm.SubExpressionString(1)
+		  if rxm <> nil then
+		    dictFrom.Value("Name") = rxm.SubExpressionString(1)
 		    
 		  end
 		  
-		  return _dictFrom
+		  return dictFrom
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub HandleError(_oSender as URLConnection, ex as RuntimeException)
-		  #pragma unused _oSender
+		Private Sub HandleError(oSender as URLConnection, ex as RuntimeException)
+		  #pragma unused oSender
 		  
 		  // Raise Error event.
 		  Error(ex)
@@ -141,34 +142,34 @@ Protected Class Mailjet
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub HandleResponse(_oSender As URLConnection, URL As String, HTTPStatus As Integer, content As String)
-		  #pragma unused _oSender
+		Private Sub HandleResponse(oSender As URLConnection, URL As String, HTTPStatus As Integer, content As String)
+		  #pragma unused oSender
 		  
 		  if HTTPStatus <> 200 then
-		    var _ex as new MailjetException
-		    _ex.Message = "HTTP response code was not okay: " + HTTPStatus.ToString
+		    var ex as new MailjetException
+		    ex.Message = "HTTP response code was not okay: " + HTTPStatus.ToString
 		    
 		    try
 		      // Attempt to parse out the error messager
-		      var _vResponse as Variant = ParseJSON(content.DefineEncoding(Encodings.UTF8))
-		      var _dictResponse as Dictionary = Dictionary(_vResponse)
+		      var vResponse as Variant = ParseJSON(content.DefineEncoding(Encodings.UTF8))
+		      var dictResponse as Dictionary = Dictionary(vResponse)
 		      
-		      if _dictResponse.HasKey("ErrorMessage") then
-		        _ex.Message = _dictResponse.Value("ErrorMessage")
+		      if dictResponse.HasKey("ErrorMessage") then
+		        ex.Message = dictResponse.Value("ErrorMessage")
 		        
 		      end
 		      
-		    catch ex as IllegalCastException
+		    catch ex2 as IllegalCastException
 		      // Trying to turn the variant into a dictionary failed
 		      // This can happen if it's not the single json object we're expecting
 		      
-		    catch ex as InvalidJSONException
+		    catch ex2 as InvalidJSONException
 		      // Response wasn't json
 		      // Not much we can parse here
 		      
 		    end try
 		    
-		    RaiseEvent Error(_ex)
+		    RaiseEvent Error(ex)
 		    
 		  else
 		    // Good response, pass to parser who will parse out
@@ -183,20 +184,20 @@ Protected Class Mailjet
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Sub HandleResponse200(_sBody as String)
-		  var _dictResponse, _ardictMessagesResponse() as Dictionary
+		Private Sub HandleResponse200(sBody as String)
+		  var dictResponse, ardictMessagesResponse() as Dictionary
 		  
 		  try
 		    // Convert json body to Xojo object
-		    var _vBody as Variant = ParseJSON(_sBody)
-		    _dictResponse = Dictionary(_vBody)
+		    var vBody as Variant = ParseJSON(sBody)
+		    dictResponse = Dictionary(vBody)
 		    
-		    if _dictResponse.HasKey("Messages") then
-		      var _arvMessages() as Variant = _dictResponse.Value("Messages")
-		      for each _vMessage as Variant in _arvMessages
-		        _ardictMessagesResponse.Add(Dictionary(_vMessage))
+		    if dictResponse.HasKey("Messages") then
+		      var arvMessages() as Variant = dictResponse.Value("Messages")
+		      for each vMessage as Variant in arvMessages
+		        ardictMessagesResponse.Add(Dictionary(vMessage))
 		        
-		      next _vMessage
+		      next vMessage
 		      
 		    end
 		    
@@ -216,26 +217,26 @@ Protected Class Mailjet
 		  
 		  // Store a flag for if the response is all failures
 		  // That shouldn't raise a MailSent event because no mail was ever sent
-		  var _bAllFailures as Boolean = True
+		  var bAllFailures as Boolean = True
 		  
-		  for each _dictMessageResult as Dictionary in _ardictMessagesResponse
-		    var _sStatus as String =_dictMessageResult.Lookup("Status", "unknown")
+		  for each dictMessageResult as Dictionary in ardictMessagesResponse
+		    var sStatus as String =dictMessageResult.Lookup("Status", "unknown")
 		    
-		    select case _sStatus
+		    select case sStatus
 		    case "success"
-		      _bAllFailures = false
+		      bAllFailures = false
 		      
 		    case else
-		      var _ex as new MailjetException
-		      _ex.Message = "A message failed to send: " + GenerateJSON(_dictMessageResult)
-		      Error(_ex)
+		      var ex as new MailjetException
+		      ex.Message = "A message failed to send: " + GenerateJSON(dictMessageResult)
+		      Error(ex)
 		      
 		    end
 		    
-		  next _dictMessageResult
+		  next dictMessageResult
 		  
 		  // Raise Sent event if something sent!
-		  if not _bAllFailures then
+		  if not bAllFailures then
 		    RaiseEvent MailSent
 		    
 		  end
@@ -248,16 +249,16 @@ Protected Class Mailjet
 	#tag Method, Flags = &h21
 		Private Function NewSocket() As URLConnection
 		  // Create URLConnection and add the authentication header
-		  var _sAuth as String = EncodeBase64(kAPIKey + ":" + kAPISecret, 0)
+		  var sAuth as String = EncodeBase64(kAPIKey + ":" + kAPISecret, 0)
 		  
-		  var _oSock as new URLConnection
-		  _oSock.RequestHeader("Authorization") = "Basic " + _sAuth
+		  var oSock as new URLConnection
+		  oSock.RequestHeader("Authorization") = "Basic " + sAuth
 		  
 		  // Handle server responses that aren't 200
-		  AddHandler _oSock.Error, WeakAddressOf HandleError
-		  AddHandler _oSock.ContentReceived, WeakAddressOf HandleResponse
+		  AddHandler oSock.Error, WeakAddressOf HandleError
+		  AddHandler oSock.ContentReceived, WeakAddressOf HandleResponse
 		  
-		  return _oSock
+		  return oSock
 		End Function
 	#tag EndMethod
 
@@ -271,39 +272,39 @@ Protected Class Mailjet
 		Sub SendMail()
 		  // Validate
 		  if mbBusy then
-		    var _ex as new MailjetException
-		    _ex.Message = "This Mailjet socket is already in use, please wait for the MailSent event."
-		    RaiseEvent Error(_ex)
+		    var ex as new MailjetException
+		    ex.Message = "This Mailjet socket is already in use, please wait for the MailSent event."
+		    RaiseEvent Error(ex)
 		    return
 		    
 		  end
 		  
-		  var _dictRequest as new Dictionary
+		  var dictRequest as new Dictionary
 		  
 		  #if DebugBuild then
 		    // This SandboxMode flag prevents emails from actually sending
 		    // Take this out if you're testing actual delivery
-		    _dictRequest.Value("SandboxMode") = true
+		    dictRequest.Value("SandboxMode") = true
 		    
 		  #endif
 		  
-		  var _aroMessages() as Dictionary
+		  var aroMessages() as Dictionary
 		  
 		  // Put all messages into request
-		  for each _oEmail as EmailMessage in Messages
-		    var _dictMail as Dictionary = ConvertEmailToMailjet(_oEmail)
-		    _aroMessages.Add(_dictMail)
+		  for each oEmail as EmailMessage in Messages
+		    var dictMail as Dictionary = ConvertEmailToMailjet(oEmail)
+		    aroMessages.Add(dictMail)
 		    
-		  next _oEmail
+		  next oEmail
 		  
-		  _dictRequest.Value("Messages") = _aroMessages()
+		  dictRequest.Value("Messages") = aroMessages()
 		  
-		  var _sBody as String = GenerateJSON(_dictRequest)
+		  var sBody as String = GenerateJSON(dictRequest)
 		  
 		  mbBusy = true
 		  moSock = NewSocket
 		  
-		  moSock.SetRequestContent(_sBody, "application/json")
+		  moSock.SetRequestContent(sBody, "application/json")
 		  
 		  moSock.Send("POST", "https://api.mailjet.com/v3.1/send")
 		End Sub
