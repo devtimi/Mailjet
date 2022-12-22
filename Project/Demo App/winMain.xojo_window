@@ -611,6 +611,16 @@ End
 		  oEmail.Subject = txtSubject.Text.Trim
 		  oEmail.BodyPlainText = txtBody.Text.Trim
 		  
+		  #if false then
+		    // Add test attachment
+		    var oAttach as new EmailAttachment
+		    oAttach.LoadFromFile(FolderItem)
+		    oAttach.MIMEType = "text/plain"
+		    
+		    oEmail.Attachments.Add(oAttach)
+		    
+		  #endif
+		  
 		  oEmail.AddRecipient(sEmailTo)
 		  
 		  // Disable button

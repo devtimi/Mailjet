@@ -161,6 +161,7 @@ Protected Class Mailjet
 	#tag Method, Flags = &h21
 		Private Sub HandleResponse(oSender As URLConnection, URL As String, HTTPStatus As Integer, content As String)
 		  #pragma unused oSender
+		  #pragma unused URL
 		  
 		  if HTTPStatus <> 200 then
 		    var ex as new MailjetException
