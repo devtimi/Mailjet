@@ -357,9 +357,6 @@ Protected Class Mailjet
 	#tag Constant, Name = kAPISecret, Type = String, Dynamic = False, Default = \"", Scope = Private
 	#tag EndConstant
 
-	#tag Constant, Name = kMaxSockets, Type = Double, Dynamic = False, Default = \"5", Scope = Private
-	#tag EndConstant
-
 	#tag Constant, Name = kRxEmail, Type = String, Dynamic = False, Default = \"<\?([^@\\s]+@[^@\\s\\.]+\\.[^@\\s>]+)>\?", Scope = Private
 	#tag EndConstant
 
