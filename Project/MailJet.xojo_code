@@ -1,6 +1,23 @@
 #tag Class
 Protected Class Mailjet
 	#tag Method, Flags = &h21
+		Private Function ConvertAttachments(oEmail as EmailMessage) As JSONItem
+		  var jsAttachmentsArray as new JSONItem("[]")
+		  
+		  for each oAttachment as EmailAttachment in oEmail.Attachments
+		    var jsAttachment as new JSONItem
+		    jsAttachment.Value("ContentType") = oAttachment.MIMEType
+		    jsAttachment.Value("Filename") = oAttachment.Name
+		    jsAttachment.Value("Base64Content") = oAttachment.Data
+		    
+		    jsAttachmentsArray.Add(jsAttachment)
+		    
+		  next oAttachment
+		  
+		  return jsAttachmentsArray
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Function ConvertEmailToMailjet(oMail as EmailMessage) As JSONItem
 		  // Validate From
