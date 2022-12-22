@@ -119,34 +119,6 @@ Protected Class Mailjet
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function GetFromObject(oMail as EmailMessage) As Dictionary
-		  // Set up From object
-		  var dictFrom as new Dictionary
-		  
-		  var rx as new RegEx
-		  rx.SearchPattern = kRxEmail
-		  
-		  var rxm as RegExMatch = rx.Search(oMail.FromAddress)
-		  if rxm <> nil then
-		    dictFrom.Value("Email") = rxm.SubExpressionString(1)
-		    
-		  end
-		  
-		  // Now check for name
-		  rx = new RegEx
-		  rx.SearchPattern = kRxEmailName
-		  rxm = rx.Search(oMail.FromAddress)
-		  
-		  if rxm <> nil then
-		    dictFrom.Value("Name") = rxm.SubExpressionString(1)
-		    
-		  end
-		  
-		  return dictFrom
-		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h21
 		Private Sub HandleError(oSender as URLConnection, ex as RuntimeException)
 		  #pragma unused oSender
 		  
@@ -169,19 +141,14 @@ Protected Class Mailjet
 		    
 		    try
 		      // Attempt to parse out the error messager
-		      var vResponse as Variant = ParseJSON(content.DefineEncoding(Encodings.UTF8))
-		      var dictResponse as Dictionary = Dictionary(vResponse)
+		      var jsResponse as new JSONItem(content.DefineEncoding(Encodings.UTF8))
 		      
-		      if dictResponse.HasKey("ErrorMessage") then
-		        ex.Message = dictResponse.Value("ErrorMessage")
+		      if jsResponse.HasKey("ErrorMessage") then
+		        ex.Message = jsResponse.Value("ErrorMessage")
 		        
 		      end
 		      
-		    catch ex2 as IllegalCastException
-		      // Trying to turn the variant into a dictionary failed
-		      // This can happen if it's not the single json object we're expecting
-		      
-		    catch ex2 as InvalidJSONException
+		    catch ex2 as JSONException
 		      // Response wasn't json
 		      // Not much we can parse here
 		      
@@ -203,29 +170,23 @@ Protected Class Mailjet
 
 	#tag Method, Flags = &h21
 		Private Sub HandleResponse200(sBody as String)
-		  var dictResponse, ardictMessagesResponse() as Dictionary
+		  var arjsMessages() as JSONItem
 		  
 		  try
 		    // Convert json body to Xojo object
-		    var vBody as Variant = ParseJSON(sBody)
-		    dictResponse = Dictionary(vBody)
+		    var jsBody as new JSONItem(sBody)
 		    
-		    if dictResponse.HasKey("Messages") then
-		      var arvMessages() as Variant = dictResponse.Value("Messages")
-		      for each vMessage as Variant in arvMessages
-		        ardictMessagesResponse.Add(Dictionary(vMessage))
+		    if jsBody.HasKey("Messages") then
+		      var jsMessages as JSONItem = jsBody.Value("Messages")
+		      
+		      for i as Integer = 0 to jsMessages.LastRowIndex
+		        arjsMessages.Add(jsMessages.ChildAt(i))
 		        
-		      next vMessage
+		      next i
 		      
 		    end
 		    
-		  catch ex as IllegalCastException
-		    // Trying to turn the variant into a dictionary failed
-		    // This can happen if it's not the single json object we're expecting
-		    RaiseEvent Error(ex)
-		    return
-		    
-		  catch ex as InvalidJSONException
+		  catch ex as JSONException
 		    // Response wasn't json
 		    // Not much we can parse here
 		    RaiseEvent Error(ex)
@@ -237,8 +198,8 @@ Protected Class Mailjet
 		  // That shouldn't raise a MailSent event because no mail was ever sent
 		  var bAllFailures as Boolean = True
 		  
-		  for each dictMessageResult as Dictionary in ardictMessagesResponse
-		    var sStatus as String =dictMessageResult.Lookup("Status", "unknown")
+		  for each jsMessageResult as JSONItem in arjsMessages
+		    var sStatus as String = jsMessageResult.Lookup("Status", "unknown")
 		    
 		    select case sStatus
 		    case "success"
@@ -246,12 +207,12 @@ Protected Class Mailjet
 		      
 		    case else
 		      var ex as new MailjetException
-		      ex.Message = "A message failed to send: " + GenerateJSON(dictMessageResult)
+		      ex.Message = "A message failed to send: " + jsMessageResult.ToString
 		      Error(ex)
 		      
 		    end
 		    
-		  next dictMessageResult
+		  next jsMessageResult
 		  
 		  // Raise Sent event if something sent!
 		  if not bAllFailures then
