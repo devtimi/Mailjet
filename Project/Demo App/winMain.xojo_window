@@ -581,44 +581,44 @@ End
 		  end
 		  
 		  // Construct addresses
-		  var _sEmailFrom, _sEmailTo as String
+		  var sEmailFrom, sEmailTo as String
 		  
 		  if txtFromName.Text.Trim <> "" then
 		    // There's no separate name and email field in EmailMessage
 		    // so we'll stash the name through the normal email convention of
 		    // Person Name <address@domain.com>
-		    _sEmailFrom = txtFromName.Text.Trim + " <" + txtFromEmail.Text.Trim + ">"
+		    sEmailFrom = txtFromName.Text.Trim + " <" + txtFromEmail.Text.Trim + ">"
 		    
 		  else
 		    // No From name
-		    _sEmailFrom = txtFromEmail.Text.Trim
+		    sEmailFrom = txtFromEmail.Text.Trim
 		    
 		  end
 		  
 		  if txtToName.Text.Trim <> "" then
 		    // Add To name
-		    _sEmailTo = txtToName.Text.Trim + " <" + txtToEmail.Text.Trim + ">"
+		    sEmailTo = txtToName.Text.Trim + " <" + txtToEmail.Text.Trim + ">"
 		    
 		  else
 		    // No To name
-		    _sEmailTo = txtToEmail.Text.Trim
+		    sEmailTo = txtToEmail.Text.Trim
 		    
 		  end
 		  
 		  // Create EmailMessage Object
-		  var _oEmail as new EmailMessage
-		  _oEmail.FromAddress = _sEmailFrom
-		  _oEmail.Subject = txtSubject.Text.Trim
-		  _oEmail.BodyPlainText = txtBody.Text.Trim
+		  var oEmail as new EmailMessage
+		  oEmail.FromAddress = sEmailFrom
+		  oEmail.Subject = txtSubject.Text.Trim
+		  oEmail.BodyPlainText = txtBody.Text.Trim
 		  
-		  _oEmail.AddRecipient(_sEmailTo)
+		  oEmail.AddRecipient(sEmailTo)
 		  
 		  // Disable button
 		  me.Enabled = false
 		  pwSend.Visible = true
 		  
 		  // Append message and send it
-		  oMailjet.Messages.Add(_oEmail)
+		  oMailjet.Messages.Add(oEmail)
 		  oMailjet.SendMail
 		  
 		End Sub
@@ -627,11 +627,11 @@ End
 #tag Events oMailjet
 	#tag Event
 		Sub Error(ex as RuntimeException)
-		  var _md as new MessageDialog
-		  _md.Message = Introspection.GetType(ex).Name
-		  _md.Explanation = ex.Message
+		  var md as new MessageDialog
+		  md.Message = Introspection.GetType(ex).Name
+		  md.Explanation = ex.Message
 		  
-		  call _md.ShowModal
+		  call md.ShowModal
 		  
 		  // Enable send button
 		  btnSend.Enabled = true
