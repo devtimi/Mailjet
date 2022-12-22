@@ -2,7 +2,7 @@
 Protected Class Mailjet
 	#tag Method, Flags = &h21
 	#tag Method, Flags = &h21
-		Private Function ConvertEmailToMailjet(oMail as EmailMessage) As Dictionary
+		Private Function ConvertEmailToMailjet(oMail as EmailMessage) As JSONItem
 		  // Validate From
 		  if oMail.FromAddress.Trim = "" then
 		    var ex as new MailjetException
@@ -21,64 +21,64 @@ Protected Class Mailjet
 		    
 		  end
 		  
-		  var ardictFrom() as Dictionary = GetAddressArray(oMail.FromAddress)
+		  var jsFromArray as JSONItem = GetAddressArray(oMail.FromAddress)
 		  
-		  var ardictTo() as Dictionary = GetAddressArray(oMail.ToAddress)
-		  var ardictCC() as Dictionary = GetAddressArray(oMail.CCAddress)
-		  var ardictBCC() as Dictionary = GetAddressArray(oMail.BCCAddress)
+		  var jsToArray as JSONItem = GetAddressArray(oMail.ToAddress)
+		  var jsCCArray as JSONItem = GetAddressArray(oMail.CCAddress)
+		  var jsBCCArray as JSONItem = GetAddressArray(oMail.BCCAddress)
 		  
 		  // Start building JSON item
-		  var dictBody as new Dictionary
-		  dictBody.Value("From") = ardictFrom(0)
-		  dictBody.Value("To") = ardictTo
+		  var jsBody as new JSONItem
+		  jsBody.Value("From") = jsFromArray(0)
+		  jsBody.Value("To") = jsToArray
 		  
-		  if ardictCC.LastIndex > -1 then
-		    dictBody.Value("CC") = ardictCC
+		  if jsCCArray.Count > 0 then
+		    jsBody.Value("CC") = jsCCArray
 		    
 		  end
 		  
-		  if ardictBCC.LastIndex > -1 then
-		    dictBody.Value("BCC") = ardictBCC
+		  if jsBCCArray.Count > 0 then
+		    jsBody.Value("BCC") = jsBCCArray
 		    
 		  end
 		  
-		  dictBody.Value("Subject") = oMail.Subject
+		  jsBody.Value("Subject") = oMail.Subject
 		  
 		  if oMail.BodyPlainText <> "" then
-		    dictBody.Value("TextPart") = oMail.BodyPlainText
+		    jsBody.Value("TextPart") = oMail.BodyPlainText
 		    
 		  end
 		  
 		  if oMail.BodyHTML <> "" then
-		    dictBody.Value("HTMLPart") = oMail.BodyHTML
+		    jsBody.Value("HTMLPart") = oMail.BodyHTML
 		    
 		  end
 		  
 		  // Attachments are not handled at this time
 		  if oMail.Attachments.LastIndex > -1 then
-		    ConvertAttachments(oMail)
+		    jsBody.Value("Attachments") = ConvertAttachments(oMail)
 		    
 		  end
 		  
-		  return dictBody
+		  return jsBody
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
-		Private Function GetAddressArray(sRecipientsCSV as String) As Dictionary()
-		  var ardictTo() as Dictionary
+		Private Function GetAddressArray(sRecipientsCSV as String) As JSONItem
+		  var jsToArray as new JSONItem("[]")
 		  
 		  var arsAddressed() as String = sRecipientsCSV.Split(",")
 		  
 		  for each sAddress as String in arsAddressed
-		    var dictTo as new Dictionary
+		    var jsToItem as new JSONItem
 		    
 		    var rx as new RegEx
 		    rx.SearchPattern = kRxEmail
 		    
 		    var rxm as RegExMatch = rx.Search(sAddress)
 		    if rxm <> nil then
-		      dictTo.Value("Email") = rxm.SubExpressionString(1)
+		      jsToItem.Value("Email") = rxm.SubExpressionString(1)
 		      
 		    end
 		    
@@ -88,16 +88,16 @@ Protected Class Mailjet
 		    rxm = rx.Search(sAddress)
 		    
 		    if rxm <> nil then
-		      dictTo.Value("Name") = rxm.SubExpressionString(1)
+		      jsToItem.Value("Name") = rxm.SubExpressionString(1)
 		      
 		    end
 		    
 		    // Add it to the array
-		    ardictTo.Add(dictTo)
+		    jsToArray.Add(jsToItem)
 		    
 		  next sAddress
 		  
-		  return ardictTo
+		  return jsToArray
 		End Function
 	#tag EndMethod
 
@@ -279,27 +279,27 @@ Protected Class Mailjet
 		    
 		  end
 		  
-		  var dictRequest as new Dictionary
+		  var jsRequest as new JSONItem
 		  
 		  #if DebugBuild then
 		    // This SandboxMode flag prevents emails from actually sending
 		    // Take this out if you're testing actual delivery
-		    dictRequest.Value("SandboxMode") = true
+		    jsRequest.Value("SandboxMode") = true
 		    
 		  #endif
 		  
-		  var aroMessages() as Dictionary
+		  var jsMessages as new JSONItem("[]")
 		  
 		  // Put all messages into request
 		  for each oEmail as EmailMessage in Messages
-		    var dictMail as Dictionary = ConvertEmailToMailjet(oEmail)
-		    aroMessages.Add(dictMail)
+		    var jsMail as JSONItem = ConvertEmailToMailjet(oEmail)
+		    jsMessages.Add(jsMail)
 		    
 		  next oEmail
 		  
-		  dictRequest.Value("Messages") = aroMessages()
+		  jsRequest.Value("Messages") = jsMessages
 		  
-		  var sBody as String = GenerateJSON(dictRequest)
+		  var sBody as String = jsRequest.ToString
 		  
 		  mbBusy = true
 		  moSock = NewSocket
